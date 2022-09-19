@@ -1,29 +1,15 @@
-# README #
+# HMC E160 Spring 2017, Spring 2018
+HMC E160 Autonomous robots navigation, without using ROS
+Instructor: C. Clark, Assistants: Z. Lobo, J. Lee
 
-This README would normally document whatever steps are necessary to get your application up and running.
+# HMC E190AR Spring 2019
+HMC E190AR Robotics with ROS, a version with ROS is available (not included in this package)
+Instructor: Y. Chang, Assistants: J. Shi, J. Lee
 
-### What is this repository for? ###
+# CPP ME5751 Fall 2019
+2019 CPP ME 5751 Robot motion planning, simulation only
+Instructor: Y. Chang
 
-* Quick summary
-* Version
-* [Learn Markdown](https://bitbucket.org/tutorials/markdowndemo)
-
-### How do I get set up? ###
-
-* Summary of set up
-* Configuration
-* Dependencies
-* Database configuration
-* How to run tests
-* Deployment instructions
-
-### Contribution guidelines ###
-
-* Writing tests
-* Code review
-* Other guidelines
-
-### Who do I talk to? ###
-
-* Repo owner or admin
-* Other community or team contact
+# CPP ME5751 Fall 2022
+2022 CPP ME 5751 Robot motion planning, simulation only
+Instructor: Y. Chang
