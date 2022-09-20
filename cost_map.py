@@ -7,7 +7,7 @@ from queue import Queue
 class cost_map:
 	def __init__(self,graphics):
 		self.graphics = graphics
-		self.graphics.scale = 400 # This value should be same as the pixel value of the image
+		# self.graphics.scale = 400 # This value should be same as the pixel value of the image
 		self.inflation_radius = 18 # radius of our robot is 18 pixel or cm
 		self.graphics.environment.robots[0].set_bot_size(body_cm = 2*self.inflation_radius)
 		#self.graphics.environment.width/height = 2
