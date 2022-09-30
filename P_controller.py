@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from calendar import c
+from sys import float_repr_style
 from E160_state import *
 from E160_robot import *
 import math
@@ -16,6 +17,8 @@ class P_controller:
 		self.ka = 5#0  # k_alpha  5
 		self.kb = 0.5#0  # k_beta  0.1
 		self.finish = 1
+		self.fltrC_w = 50
+		self.fltrC_v = 100
 		#self.kp = 5  #5
 		#self.kb = -1  # -1
 		#self.ka = 2   # 2
@@ -34,10 +37,13 @@ class P_controller:
 		# here is the example of destination code
 		
 		self.robot.state_des.add_destination(x=100,y=0,theta=0.25)    #goal point 1
-		self.robot.state_des.add_destination(x=90,y=30,theta=1.57) #goal point 2
-		self.robot.state_des.add_destination(x=-50,y=30,theta=-1.57) #goal point 3
-		self.robot.state_des.add_destination(x=190,y=30,theta=1.57) #goal point 4
-		self.robot.state_des.add_destination(x=0,y=0,theta=0) #goal point 5
+		self.robot.state_des.add_destination(x=90,y=30,theta=-0.43) #goal point 2
+		self.robot.state_des.add_destination(x=-50,y=125,theta=-1.57) #goal point 3
+		self.robot.state_des.add_destination(x=190,y=30,theta=2.1) #goal point 4
+		self.robot.state_des.add_destination(x=-100,y=-75,theta=0) #goal point 5
+		self.robot.state_des.add_destination(x=100,y=75,theta=-2.20) #goal point 6
+		self.robot.state_des.add_destination(x=-144,y=-15,theta=0) #goal point 7
+		self.robot.state_des.add_destination(x=0,y=0,theta=-3.14) #goal point 8
 
 
 	def track_point(self):
@@ -62,7 +68,6 @@ class P_controller:
 		if (- math.pi/2 < alpha <= math.pi/2):
 			beta=omega-d_theta # omega-d_theta
 			c_v= self.kp*rho
-			#self.robot.log_data(['fart_ass'])
 		else:
 			beta= -(omega - 1.57) + d_theta  #omega - 1.57
 			alpha =  c_theta + beta # - c_theta - beta
@@ -76,13 +81,14 @@ class P_controller:
 		# set new c_v = k_rho*rho, c_w = k_alpha*alpha + k_beta*beta
 
 		#c_v= self.kp*rho
-
-		if c_v > 40: c_v=40
+		
+		if c_v > self.fltrC_v: c_v = self.fltrC_v
+		if c_v < -self.fltrC_v: c_v = -self.fltrC_v
 
 
 		c_w=self.ka*alpha + self.kb*beta
 		
-		if abs(c_w) > 15: # saturation filter
+		if abs(c_w) > self.fltrC_w: # saturation filter
 			if abs(c_w) == c_w:
 				c_w = 15
 			else:
@@ -90,7 +96,7 @@ class P_controller:
 		
 		#c_v = 25 #randomly assigned c_v and c_w for demonstration purpose
 		#c_w = 0 #1.57
-
+		
 		# self.robot.set_motor_control(linear velocity (cm), angular velocity (rad))
 		self.robot.set_motor_control(c_v, c_w)  # use this command to set robot's speed in local frame
 		
