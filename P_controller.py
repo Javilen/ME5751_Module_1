@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+from calendar import c
 from E160_state import *
 from E160_robot import *
 import math
@@ -14,6 +15,7 @@ class P_controller:
 		self.kp = 3#0  # k_rho 0.5
 		self.ka = 5#0  # k_alpha  5
 		self.kb = 0.5#0  # k_beta  0.1
+		self.finish = 1
 		#self.kp = 5  #5
 		#self.kb = -1  # -1
 		#self.ka = 2   # 2
@@ -31,10 +33,10 @@ class P_controller:
 	def set_goal_points(self):
 		# here is the example of destination code
 		
-		#self.robot.state_des.add_destination(x=100,y=0,theta=0.25)    #goal point 1
+		self.robot.state_des.add_destination(x=100,y=0,theta=0.25)    #goal point 1
 		self.robot.state_des.add_destination(x=90,y=30,theta=1.57) #goal point 2
-		#self.robot.state_des.add_destination(x=-50,y=30,theta=-1.57) #goal point 3
-		#self.robot.state_des.add_destination(x=190,y=30,theta=1.57) #goal point 4
+		self.robot.state_des.add_destination(x=-50,y=30,theta=-1.57) #goal point 3
+		self.robot.state_des.add_destination(x=190,y=30,theta=1.57) #goal point 4
 		self.robot.state_des.add_destination(x=0,y=0,theta=0) #goal point 5
 
 
@@ -56,12 +58,24 @@ class P_controller:
 		rho=math.sqrt((d_posX-c_posX)**2+(d_posY-c_posY)**2)
 		omega=math.atan2(d_posY-c_posY,d_posX-c_posX)
 		alpha=omega-c_theta
-		beta=omega-d_theta # omega-d_theta
+		#beta=omega-d_theta # omega-d_theta
+		if (- math.pi/2 < alpha <= math.pi/2):
+			beta=omega-d_theta # omega-d_theta
+			c_v= self.kp*rho
+			#self.robot.log_data(['fart_ass'])
+		else:
+			beta= -(omega - 1.57) + d_theta  #omega - 1.57
+			alpha =  c_theta + beta # - c_theta - beta
+			#beta=-(omega-d_theta)
+			#c_v= -self.kp*rho
 
+		if (abs(beta) > 1.57):
+			self.robot.log_data([ beta ])
+			
 
 		# set new c_v = k_rho*rho, c_w = k_alpha*alpha + k_beta*beta
 
-		c_v= self.kp*rho
+		#c_v= self.kp*rho
 
 		if c_v > 40: c_v=40
 
@@ -94,7 +108,7 @@ class P_controller:
 			#self.robot.log_data([ c_posX , rho , d_theta, alpha, beta ])
 			self.robot.log_data([ omega ])
 
-		if abs(rho) < 10: #you need to modify the reach way point criteria  if abs(c_posX - d_posX) < 80:
+		if abs(rho) < self.finish: #you need to modify the reach way point criteria  if abs(c_posX - d_posX) < 80:
 			if(self.robot.state_des.reach_destination()): 
 				print("final goal reached")
 				self.robot.set_motor_control(.0, .0)  # stop the motor
