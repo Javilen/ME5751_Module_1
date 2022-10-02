@@ -11,23 +11,20 @@ import time
 
 class P_controller:
 
-	def __init__(self, robot, logging = False):
+	def __init__(self, robot, logging = True):
 		self.robot = robot  # do not delete this line
 		self.kp = 3#0  # k_rho 0.5
 		self.ka = 5#0  # k_alpha  5
-		self.kb = 0.5#0  # k_beta  0.1
+		self.kb = -0.5#0  # k_beta  0.1
 		self.finish = 1
 		self.fltrC_w = 50
 		self.fltrC_v = 100
-		#self.kp = 5  #5
-		#self.kb = -1  # -1
-		#self.ka = 2   # 2
 		self.logging = logging
 
 		if(logging == True):
 			#self.robot.make_headers(['pos_X','posY','posZ','vix','viy','wi','vr','wr'])
 			#self.robot.make_headers(['pos_X','rho', 'd_theta', 'alpha', 'beta'])
-			self.robot.make_headers([ 'do it now' , 'rho' ])
+			self.robot.make_headers([ 'pos_X', 'pos_y', 'c_theta' , 'goal_X', 'goal_y', 'd_theta'])
 
 		self.set_goal_points()
 
@@ -64,31 +61,22 @@ class P_controller:
 		rho=math.sqrt((d_posX-c_posX)**2+(d_posY-c_posY)**2)
 		omega=math.atan2(d_posY-c_posY,d_posX-c_posX)
 		alpha=omega-c_theta
-		#beta=omega-d_theta # omega-d_theta
+		# Determine if forward or backwards method is to be used
 		if (- math.pi/2 < alpha <= math.pi/2):
-			beta=omega-d_theta # omega-d_theta
+			beta = d_theta - omega # beta=omega-d_theta
 			c_v= self.kp*rho
 		else:
-			beta= -(omega - 1.57) + d_theta  #omega - 1.57
+			omega=math.atan2(d_posY-c_posY,c_posX-d_posX)
+			beta= -(omega + d_theta)  # beta= omega + d_theta
 			alpha =  c_theta + beta # - c_theta - beta
-			#beta=-(omega-d_theta)
-			#c_v= -self.kp*rho
-
-		if (abs(beta) > 1.57):
-			self.robot.log_data([ beta ])
-			
-
-		# set new c_v = k_rho*rho, c_w = k_alpha*alpha + k_beta*beta
-
-		#c_v= self.kp*rho
-		
+			c_v= -self.kp*rho
+		# Saturation filter for velocity
 		if c_v > self.fltrC_v: c_v = self.fltrC_v
 		if c_v < -self.fltrC_v: c_v = -self.fltrC_v
 
-
 		c_w=self.ka*alpha + self.kb*beta
-		
-		if abs(c_w) > self.fltrC_w: # saturation filter
+		# Saturation filter for angular velocity
+		if abs(c_w) > self.fltrC_w:
 			if abs(c_w) == c_w:
 				c_w = 15
 			else:
@@ -112,7 +100,7 @@ class P_controller:
 		if self.logging == True:
 			#self.robot.log_data([c_posX,c_posY,c_theta,c_vix,c_viy,c_wi,c_v,c_w])
 			#self.robot.log_data([ c_posX , rho , d_theta, alpha, beta ])
-			self.robot.log_data([ omega ])
+			self.robot.log_data([ c_posX, c_posY, c_theta, d_posX, d_posY, d_theta ])
 
 		if abs(rho) < self.finish: #you need to modify the reach way point criteria  if abs(c_posX - d_posX) < 80:
 			if(self.robot.state_des.reach_destination()): 
