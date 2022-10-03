@@ -93,17 +93,13 @@ class P_controller:
 		phi_l = (1/3)*c_v +4*c_w
 		phi_r = (1/3)*c_v -4*c_w
 		
-		if phi_l > 16:
-    			phi_l =16
+		if phi_l > 16: phi_l =16
 
-		if phi_l < -16:
-   			phi_l = -16
+		if phi_l < -16: phi_l = -16
 
-		if phi_r > 16:
-  			phi_r = 16
+		if phi_r > 16: phi_r = 16
 
-		if phi_r < -16:
-    			phi_r = -16
+		if phi_r < -16: phi_r = -16
 
 		self.robot.send_wheel_speed(float("{:.1f}".format(phi_l)),float("{:.1f}".format(phi_r))) #unit rad/s phi_l = 6.0,phi_r = 6.0
 
