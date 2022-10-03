@@ -13,9 +13,9 @@ class P_controller:
 
 	def __init__(self, robot, logging = True):
 		self.robot = robot  # do not delete this line
-		self.kp = 3#0  # k_rho 0.5
-		self.ka = 5#0  # k_alpha  5
-		self.kb = -0.5#0  # k_beta  0.1
+		self.kp = 5  # k_rho
+		self.ka = 12  # k_alpha
+		self.kb = -1.5  # k_beta
 		self.finish = 1
 		self.fltrC_w = 50
 		self.fltrC_v = 100
@@ -24,8 +24,7 @@ class P_controller:
 		if(logging == True):
 			#self.robot.make_headers(['pos_X','posY','posZ','vix','viy','wi','vr','wr'])
 			#self.robot.make_headers(['pos_X','rho', 'd_theta', 'alpha', 'beta'])
-			self.robot.make_headers([ 'pos_X', 'pos_y', 'c_theta' , 'goal_X', 'goal_y', 'd_theta'])
-
+			self.robot.make_headers(['pos_X','pos_y','vix','viy','wi','c_theta','goal_X','goal_y','d_theta'])
 		self.set_goal_points()
 
 	#Edit goal point list below, if you click a point using mouse, the points programmed
@@ -33,14 +32,11 @@ class P_controller:
 	def set_goal_points(self):
 		# here is the example of destination code
 		
-		self.robot.state_des.add_destination(x=100,y=0,theta=0.25)    #goal point 1
-		self.robot.state_des.add_destination(x=90,y=30,theta=-0.43) #goal point 2
-		self.robot.state_des.add_destination(x=-50,y=125,theta=-1.57) #goal point 3
-		self.robot.state_des.add_destination(x=190,y=30,theta=2.1) #goal point 4
-		self.robot.state_des.add_destination(x=-100,y=-75,theta=0) #goal point 5
-		self.robot.state_des.add_destination(x=100,y=75,theta=-2.20) #goal point 6
-		self.robot.state_des.add_destination(x=-144,y=-15,theta=0) #goal point 7
-		self.robot.state_des.add_destination(x=0,y=0,theta=-3.14) #goal point 8
+		self.robot.state_des.add_destination(x=120,y=130,theta=-0.43)  #goal point 1
+		self.robot.state_des.add_destination(x=190,y=-0,theta=2.1)     #goal point 2
+		self.robot.state_des.add_destination(x=-150,y=-175,theta=0)    #goal point 3
+		self.robot.state_des.add_destination(x=-150,y=-25,theta=-1.57) #goal point 4
+		self.robot.state_des.add_destination(x=-25,y=200,theta=2.5)    #goal point 5
 
 
 	def track_point(self):
@@ -57,11 +53,11 @@ class P_controller:
 
 
 		# Most of your program should be here, compute rho, alpha and beta using d_pos and c_pos
-		# Deas edit time!~!!
 		rho=math.sqrt((d_posX-c_posX)**2+(d_posY-c_posY)**2)
 		omega=math.atan2(d_posY-c_posY,d_posX-c_posX)
 		alpha=omega-c_theta
-		# Determine if forward or backwards method is to be used
+		
+        # Determine if forward or backwards method is to be used
 		if (- math.pi/2 < alpha <= math.pi/2):
 			beta = d_theta - omega # beta=omega-d_theta
 			c_v= self.kp*rho
@@ -70,20 +66,18 @@ class P_controller:
 			beta= -(omega + d_theta)  # beta= omega + d_theta
 			alpha =  c_theta + beta # - c_theta - beta
 			c_v= -self.kp*rho
-		# Saturation filter for velocity
+		
+        # Saturation filter for velocity
 		if c_v > self.fltrC_v: c_v = self.fltrC_v
 		if c_v < -self.fltrC_v: c_v = -self.fltrC_v
 
 		c_w=self.ka*alpha + self.kb*beta
 		# Saturation filter for angular velocity
 		if abs(c_w) > self.fltrC_w:
-			if abs(c_w) == c_w:
-				c_w = 15
+			if abs(c_w) == self.fltrC_w:
+				c_w = self.fltrC_w
 			else:
-				c_w = -15
-		
-		#c_v = 25 #randomly assigned c_v and c_w for demonstration purpose
-		#c_w = 0 #1.57
+				c_w = -self.fltrC_w
 		
 		# self.robot.set_motor_control(linear velocity (cm), angular velocity (rad))
 		self.robot.set_motor_control(c_v, c_w)  # use this command to set robot's speed in local frame
@@ -109,9 +103,9 @@ class P_controller:
 		if self.logging == True:
 			#self.robot.log_data([c_posX,c_posY,c_theta,c_vix,c_viy,c_wi,c_v,c_w])
 			#self.robot.log_data([ c_posX , rho , d_theta, alpha, beta ])
-			self.robot.log_data([ c_posX, c_posY, c_theta, d_posX, d_posY, d_theta ])
+			self.robot.log_data([c_posX,c_posY,c_vix,c_viy,c_wi,c_theta,d_posX,d_posY,d_theta ])
 
-		if abs(rho) < self.finish: #you need to modify the reach way point criteria  if abs(c_posX - d_posX) < 80:
+		if abs(rho) < self.finish and abs(d_theta - c_theta) < 0.1: #you need to modify the reach way point criteria  if abs(c_posX - d_posX) < 80:
 			if(self.robot.state_des.reach_destination()): 
 				print("final goal reached")
 				self.robot.set_motor_control(.0, .0)  # stop the motor
