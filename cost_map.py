@@ -14,7 +14,7 @@ class cost_map:
 		self.map_width = int(self.graphics.environment.width*self.graphics.scale)
 		self.map_height = int(self.graphics.environment.height*self.graphics.scale)
 		try:
-			self.load_map(map = "maps/testmap2.png") #load map
+			self.load_map(map = "maps/smol_test_map.png") #load map  maps/testmap.png
 		except:
 			self.graphics.show_map_button.configure(state="disabled")
 			print ("no map loaded") #if fail to find the map png
@@ -67,7 +67,10 @@ class cost_map:
 		#It has nothing to do with brushfire, replace it
 		#A whilte pixel has value of 255, a black one is 0
 		#However, some block value may be dark gray
-		self.costmap[200:400][0:-1]=128
+		# self.costmap[200:400][0:-1]=128
+		self.costmap[20:40][0:-1]=128
+
+		np.savetxt('Log/test.csv',self.costmap, delimiter=',')
 		pass
 
 	#scale costmap to 0 - 255 for visualization
