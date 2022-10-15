@@ -71,9 +71,8 @@ class cost_map:
 		# self.costmap[200:400][0:-1]=128
 		#grid4=np.array([[0,1,0,0,0],[0,1,0,0,0],[0,1,0,0,0],[0,0,0,0,1],[0,0,0,0,1]],dtype=int)
 		grid=np.copy(self.costmap)
-		grid[grid == 0] = 1
+		grid[grid == 0] = 1  #convert to island problem
 		grid[grid > 1] = 0
-		#self.costmap=grid
 		L=len(grid)
 		q=[]
 		q2=[]
@@ -84,7 +83,6 @@ class cost_map:
 				if grid[i,j]==1:
 					q.append([i,j,0])
 					gridImage[i][j]
-                    #collisionMap[i][j]=2
 				if grid[i,j]==0:
 					q2.append([i,j,0])
 		if len(q) == L*L  or len(q2) == L*L :
@@ -98,13 +96,11 @@ class cost_map:
         down=[1,0]
         dir=[up, down, left, right]
         '''
-
-
 		while len(q) > 0 and distance != -1:
 			[x,y,depth]=q.pop(0)
 			if grid[x][y] == 0:
 				distance = max(distance,depth)
-                #ensures that the max distance is used from the number of depth steps
+                # ensures that the max distance is used from the number of depth steps
 			for [i,j] in ([x+1,y],[x-1,y],[x,y+1],[x,y-1]): 
                 # around the point of interest
 				if i >=0 and i < L and j >=0 and j < L and gridImage[i][j] == 0:  
@@ -117,9 +113,12 @@ class cost_map:
 					if brushMap[i][j] > (depth+1):  # keep the smaller one for brushfire mission statement
 						brushMap[i][j] = (depth+1)
                     # specifies that the point is one space away from the previous
-		value=brushMap - 2000*grid #-grid  #brushMap # With a hammer!
-		value[value < 0] = 0  # With a hammer!
-		value[value > 255] = 255
+		# verifies that the brushfire map displays values limited from 2 to 255 ()
+		value=brushMap - 2000*grid # Ensuring the starting points are negative
+		value[value < 0] = 0  # Setting the walls to zero
+		
+		
+		value[value > 255] = 255 # normalizing values to a 255 max
 		bigNum= -1
 		for i in range(L):
 			for j in range (L):
@@ -128,6 +127,13 @@ class cost_map:
 		for i in range(L):
 			for j in range (L):
 				value[i][j] = int(value[i][j])
+		'''
+		# Gravity map (Can be used later)
+		for i in range(L):
+			for j in range(L):
+				if value[i][j] != 0:
+					value[i][j] = value[i][j]**(-2)
+		'''
 		self.costmap=np.copy(value)
 
 
@@ -138,5 +144,6 @@ class cost_map:
 
 	#scale costmap to 0 - 255 for visualization
 	def get_vis_map(self):
-		self.vis_map = np.uint8(255-self.costmap/4.0)
+		#self.vis_map = np.uint8(255-self.costmap/4.0)
+		self.vis_map=np.uint(255-self.costmap/1.5)  # better view of map
 		np.savetxt("Log/vismap.txt",self.vis_map)
