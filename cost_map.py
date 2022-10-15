@@ -1,3 +1,4 @@
+from importlib.util import set_loader
 import cv2
 import numpy as np
 import math
@@ -68,7 +69,69 @@ class cost_map:
 		#A whilte pixel has value of 255, a black one is 0
 		#However, some block value may be dark gray
 		# self.costmap[200:400][0:-1]=128
-		self.costmap[20:40][0:-1]=128
+		#grid4=np.array([[0,1,0,0,0],[0,1,0,0,0],[0,1,0,0,0],[0,0,0,0,1],[0,0,0,0,1]],dtype=int)
+		grid=np.copy(self.costmap)
+		grid[grid == 0] = 1
+		grid[grid > 1] = 0
+		#self.costmap=grid
+		L=len(grid)
+		q=[]
+		q2=[]
+		gridImage=np.zeros((L,L),dtype=int)
+		brushMap=np.zeros((L,L),dtype=int)
+		for i in range(L):
+			for j in range(L):
+				if grid[i,j]==1:
+					q.append([i,j,0])
+					gridImage[i][j]
+                    #collisionMap[i][j]=2
+				if grid[i,j]==0:
+					q2.append([i,j,0])
+		if len(q) == L*L  or len(q2) == L*L :
+			distance= -1
+		else:            
+			distance=0
+		'''
+        right=[0,1]
+        left=[0,-1]
+        up=[-1,0]
+        down=[1,0]
+        dir=[up, down, left, right]
+        '''
+
+
+		while len(q) > 0 and distance != -1:
+			[x,y,depth]=q.pop(0)
+			if grid[x][y] == 0:
+				distance = max(distance,depth)
+                #ensures that the max distance is used from the number of depth steps
+			for [i,j] in ([x+1,y],[x-1,y],[x,y+1],[x,y-1]): 
+                # around the point of interest
+				if i >=0 and i < L and j >=0 and j < L and gridImage[i][j] == 0:  
+                    # verifies the point to peak is both in the grid and open
+					gridImage[i][j] = 1
+                    # flags point on map as seen already
+					q.append([i,j,depth+1])
+					brushMap[i][j]=depth+1 
+				if i >=0 and i < L and j >=0 and j < L and gridImage[i][j] != 0 and grid[i][j] != 1: #see if we are too close to another 
+					if brushMap[i][j] > (depth+1):  # keep the smaller one for brushfire mission statement
+						brushMap[i][j] = (depth+1)
+                    # specifies that the point is one space away from the previous
+		value=brushMap - 2000*grid #-grid  #brushMap # With a hammer!
+		value[value < 0] = 0  # With a hammer!
+		value[value > 255] = 255
+		bigNum= -1
+		for i in range(L):
+			for j in range (L):
+				bigNum = max(bigNum,value[i][j])
+		value= (255/bigNum)*value
+		for i in range(L):
+			for j in range (L):
+				value[i][j] = int(value[i][j])
+		self.costmap=np.copy(value)
+
+
+
 
 		np.savetxt('Log/test.csv',self.costmap, delimiter=',')
 		pass
