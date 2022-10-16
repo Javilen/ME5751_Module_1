@@ -15,7 +15,7 @@ class cost_map:
 		self.map_width = int(self.graphics.environment.width*self.graphics.scale)
 		self.map_height = int(self.graphics.environment.height*self.graphics.scale)
 		try:
-			self.load_map(map = "maps/smol_test_map.png") #load map  maps/testmap.png
+			self.load_map(map = "maps/Group_testmap1.png") #load map  maps/testmap.png  maps/smol_test_map.png
 		except:
 			self.graphics.show_map_button.configure(state="disabled")
 			print ("no map loaded") #if fail to find the map png
@@ -23,7 +23,7 @@ class cost_map:
 		self.show_map()
 		self.compute_costmap()
 
-		# self.show_costmap()
+		#self.show_costmap()
 		self.save_vis_map(map = "maps/testcostmap2.png")
 
 	#load occupancy grid into self.map
@@ -127,23 +127,42 @@ class cost_map:
 		for i in range(L):
 			for j in range (L):
 				value[i][j] = int(value[i][j])
-		'''
-		# Gravity map (Can be used later)
-		for i in range(L):
+		
+		gravMap=np.copy(value)
+		for i in range(L): # Gravity map (1/r^2)
 			for j in range(L):
-				if value[i][j] != 0:
-					value[i][j] = value[i][j]**(-2)
-		'''
-		self.costmap=np.copy(value)
+				if gravMap[i][j] != 0:
+					gravMap[i][j] = gravMap[i][j]**(-2)
+				if gravMap[i][j] == 0:
+					gravMap[i][j] = 255
+		np.savetxt('Log/gravity_map1.csv',gravMap, delimiter=',')
 
+		gravMap2=np.copy(value)
+		for i in range(L): # Gravity map (1/r)
+			for j in range(L):
+				if gravMap2[i][j] != 0:
+					gravMap2[i][j] = gravMap2[i][j]**(-1)
+				if gravMap2[i][j] == 0:
+					gravMap2[i][j] = 255
+		np.savetxt('Log/gravity_map2.csv',gravMap2, delimiter=',')
 
+		gravMap3=np.copy(value)
+		for i in range(L): # Gravity map (abs(r-255))
+			for j in range(L):
+				if gravMap3[i][j] != 0:
+					gravMap3[i][j] = abs(gravMap3[i][j]-256)
+				if gravMap3[i][j] == 0:
+					gravMap3[i][j] = 255
+		np.savetxt('Log/gravity_map3.csv',gravMap3, delimiter=',')
+		
+		self.costmap=np.copy(gravMap3) # set our costmap (value) or our various gravity definitions as the output
 
-
-		np.savetxt('Log/test.csv',self.costmap, delimiter=',')
+		np.savetxt('Log/cost_map.csv',self.costmap, delimiter=',')
 		pass
 
 	#scale costmap to 0 - 255 for visualization
 	def get_vis_map(self):
-		#self.vis_map = np.uint8(255-self.costmap/4.0)
-		self.vis_map=np.uint(255-self.costmap/1.5)  # better view of map
-		np.savetxt("Log/vismap.txt",self.vis_map)
+		self.vis_map = np.uint8(255-self.costmap/4.0)
+		#self.vis_map=np.uint(255-self.costmap/1.5)  # better view of map
+		np.savetxt("Log/vismap.csv",self.vis_map, delimiter=',')   # np.savetxt("Log/vismap.txt",self.vis_map)
+
