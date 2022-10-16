@@ -11,7 +11,7 @@ import time
 
 class P_controller:
 
-	def __init__(self, robot, logging = True):
+	def __init__(self, robot, logging = False):
 		self.robot = robot  # do not delete this line
 		self.kp = 5  # k_rho
 		self.ka = 12  # k_alpha
